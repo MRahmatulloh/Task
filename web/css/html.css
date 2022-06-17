@@ -1,0 +1,7 @@
+.select2-search__field:focus {
+    outline: 1px solid transparent!important;
+}
+input:disabled {
+    background-color: #2b6699!important;
+    color: #2b6699!important;
+}

@@ -3,12 +3,12 @@
 /** @var yii\web\View $this */
 /** @var string $content */
 
-use app\assets\AppAsset;
 use app\widgets\Alert;
 use yii\bootstrap4\Breadcrumbs;
 use yii\bootstrap4\Html;
 use yii\bootstrap4\Nav;
 use yii\bootstrap4\NavBar;
+use app\assets\AppAsset;
 
 AppAsset::register($this);
 ?>
@@ -35,10 +35,12 @@ AppAsset::register($this);
         ],
     ]);
     echo Nav::widget([
-        'options' => ['class' => 'navbar-nav'],
+        'options' => ['class' => 'navbar-nav w-100 justify-content-end'],
         'items' => [
             ['label' => 'Home', 'url' => ['/site/index']],
-            ['label' => 'About', 'url' => ['/site/about']],
+            ['label' => 'Kurs', 'url' => ['/kurs/index']],
+            ['label' => 'Money', 'url' => ['/money/index']],
+            ['label' => 'Settings', 'url' => ['/money/settings']],
             ['label' => 'Contact', 'url' => ['/site/contact']],
             Yii::$app->user->isGuest ? (
                 ['label' => 'Login', 'url' => ['/site/login']]
@@ -79,3 +81,12 @@ AppAsset::register($this);
 </body>
 </html>
 <?php $this->endPage() ?>
+
+<?php
+$script = <<< JS
+$(document).ready(function() {
+    alert(5555)
+ });
+JS;
+$this->registerJs($script);
+?>
