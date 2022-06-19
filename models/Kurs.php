@@ -40,10 +40,10 @@ class Kurs extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'num_code' => 'Num Code',
-            'rate' => 'Rate',
-            'date' => 'Date',
+            'id' => 'ИД',
+            'num_code' => 'Код валюты',
+            'rate' => 'Стоимость',
+            'date' => 'Датa',
         ];
     }
 
@@ -58,11 +58,72 @@ class Kurs extends \yii\db\ActiveRecord
     public static function getLastRate($date,$num_code)
     {
 
-        if (!is_string($date) || !is_integer($num_code))
+        if (!$date || !$num_code)
         {
-            return 'Occured error with given date or currency code';
+            return 'Произошла ошибка с заданной датой или кодом валюты';
         }
 
-        return Kurs::find()->where(['<=', 'date', $date])->andWhere(['num_code' => $num_code])->orderBy(['date' => SORT_DESC])->one();
+        return Kurs::find()
+            ->where(['<=', 'date', $date])
+            ->andWhere(['num_code' => $num_code])
+            ->orderBy(['id' => SORT_DESC])
+            ->one();
+    }
+
+    public static function getPrev($kurs_id, $num_code)
+    {
+
+        if (!$kurs_id || !$num_code)
+        {
+            return 'Произошла ошибка с указанным идентификатором ID или кодом валюты';
+        }
+
+        return Kurs::find()
+            ->where(['<', 'id', $kurs_id])
+            ->andWhere(['num_code' => $num_code])
+            ->orderBy(['id' => SORT_DESC])
+            ->asArray()
+            ->one();
+    }
+
+    public static function updateKurs(){
+
+        if ($xml = simplexml_load_file('http://www.cbr.ru/scripts/XML_daily.asp'))
+        {
+            $xml = json_decode(json_encode((array) $xml), 1);
+            $selected = Money::find()
+                ->where('in_kurs = 1')
+                ->asArray()
+                ->all();
+
+            foreach ($xml['Valute'] as $value){
+                if (in_array($value['NumCode'], array_column($selected, 'num_code')))
+                {
+                    $today = date('Y-m-d');
+
+                    if ($value['Nominal'] > 1)
+                        $new  = (float)($value['Value'] / $value['Nominal']);
+                    else
+                        $new = (float)($value['Value']);
+
+                    $base_rate = Kurs::find()
+                        ->where(['date' => $today, 'num_code' => $value['NumCode']])
+                        ->orderBy('id DESC')
+                        ->one();
+
+                    if (!$base_rate || $base_rate->rate != $new){
+
+                        $model = new Kurs();
+                        $model->date = $today;
+                        $model->num_code = $value['NumCode'];
+                        $model->rate = $new;
+                        $model->save();
+                    }
+                }
+            }
+            return true;
+        } else {
+            exit('Не удалось получить данные. Может быть интернет отключен');
+        }
     }
 }

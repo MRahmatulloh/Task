@@ -5,8 +5,8 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\Money */
 
-$this->title = 'Update Money: ' . $model->name;
-$this->params['breadcrumbs'][] = ['label' => 'Moneys', 'url' => ['index']];
+$this->title = 'Обновить валюту: ' . $model->name;
+$this->params['breadcrumbs'][] = ['label' => 'Валюты', 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model->name, 'url' => ['view', 'id' => $model->id]];
 $this->params['breadcrumbs'][] = 'Update';
 ?>

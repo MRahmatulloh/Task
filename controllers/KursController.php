@@ -5,6 +5,11 @@ namespace app\controllers;
 use app\models\Kurs;
 use app\models\Money;
 use app\models\search\KursSearch;
+use app\models\search\MoneySearch;
+use Yii;
+use yii\data\ArrayDataProvider;
+use yii\grid\GridView;
+use yii\helpers\Html;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -133,44 +138,116 @@ class KursController extends Controller
         throw new NotFoundHttpException('The requested page does not exist.');
     }
 
-    public function actionGetLatest(){
 
-        $xml = simplexml_load_file('http://www.cbr.ru/scripts/XML_daily.asp');
+    public function actionSettings()
+    {
+        $searchModel = new MoneySearch();
+        $model = new Money();
+        $searchModel->in_kurs = 1;
+        $dataProvider = $searchModel->search($this->request->queryParams);
+        $time['time'] = 30;
 
-        if ($xml) {
-            $xml = json_decode(json_encode((array) $xml), 1);
-            $selected = Money::find()->where('in_kurs = 1')->asArray()->all();
-
-            foreach ($xml['Valute'] as $value){
-                if (in_array($value['NumCode'], array_column($selected, 'num_code')))
-                {
-                    $today = date('Y-m-d');
-
-                    $base_late = Kurs::find()->where(['date' => $today, 'num_code' => $value['NumCode']])->orderBy('date DESC')->one();
-                    if ($base_late){
-                        if ($value['Nominal'] > 1)
-                            $base_late->rate = (float)($value['Value'] / $value['Nominal']);
-                        else
-                            $base_late->rate = (float)($value['Value']);
-
-                        $base_late->save(false);
-                    }else{
-                        $model = new Kurs();
-                        $model->date = $today;
-                        $model->num_code = $value['NumCode'];
-                        if ($value['Nominal'] > 1)
-                            $model->rate = (float)($value['Value'] / $value['Nominal']);
-                        else
-                            $model->rate = (float)($value['Value']);
-                        $model->save();
-                        print_r($model->errors);
+        if ($model->load(Yii::$app->request->post()))
+        {
+            if ($model->in_kurs && is_array($model->in_kurs)){
+                $list_k = $model->in_kurs;
+                $update = Yii::$app->getDb()->createCommand('update money set in_kurs = null, in_widget = null')->execute();
+                foreach ($list_k as $item){
+                    $money = Money::findOne(['num_code'=>$item]);
+                    if ($money){
+                        $money->in_kurs = 1;
+                        $money->save(false);
                     }
-
                 }
             }
-            $this->redirect(['kurs/index']);
-        } else {
-            exit('Failed to get data.');
+
+            if ($model->in_widget && is_array($model->in_widget)){
+                $list_k = $model->in_widget;
+                $update = Yii::$app->getDb()->createCommand('update money set in_widget = null')->execute();
+                foreach ($list_k as $item){
+                    $money = Money::findOne(['num_code'=>$item]);
+                    if ($money){
+                        $money->in_widget = 1;
+                        $money->save(false);
+                    }
+                }
+            }
+
+            if ($model->num_code){
+                $time = ['time'=>$model->num_code];
+                file_put_contents("data/time.json",json_encode($time));
+            }
+
+            $model = new Money();
         }
+
+        if(is_file('data/time.json'))
+            $time = json_decode(file_get_contents('data/time.json'), true);
+
+        return $this->render('settings', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+            'model' => $model,
+            'time' => $time
+        ]);
+    }
+
+    public function actionGetLatest(){
+        Kurs::updateKurs();
+    }
+
+    public function actionRateWidget(){
+
+        Kurs::updateKurs();
+
+        $sql = '
+                SELECT  
+					 k.*,
+                m.char_code
+                FROM kurs k
+                LEFT JOIN money m ON m.num_code = k.num_code
+                WHERE k.date = CURRENT_DATE() AND
+                    m.in_widget = 1 and
+	                k.id in 
+	                    (SELECT 
+	                        MAX(id) AS id 
+	                    FROM kurs
+	                    GROUP BY num_code)
+        ';
+
+        $data = Yii::$app->db->createCommand($sql)->queryAll();
+
+        $dataProvider = new ArrayDataProvider([
+            'allModels' => $data,
+        ]);
+
+    return GridView::widget([
+    'dataProvider' => $dataProvider,
+    'showHeader' => false,
+    'summary' => '',
+    'columns' => [
+
+        'char_code',
+        'rate',
+
+        [
+            'attribute' => 'status',
+            'format' => 'html',
+            'value' => function ($data) {
+
+                $rate_prev = Kurs::getPrev($data['id'], $data['num_code']);
+
+                if ($data['rate'] > $rate_prev['rate'])
+                    return Html::img(Yii::getAlias('@web') . '/img/up.png');
+
+                if ($data['rate'] < $rate_prev['rate'])
+                    return Html::img(Yii::getAlias('@web') . '/img/down.png');
+
+                return '';
+            }
+        ],
+    ],
+    ]);
+
     }
 }

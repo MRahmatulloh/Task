@@ -46,10 +46,10 @@ class Money extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'name' => 'Name',
-            'char_code' => 'Char Code',
-            'num_code' => 'Num Code',
+            'id' => 'ИД',
+            'num_code' => 'Код валюты',
+            'name' => 'Название',
+            'char_code' => 'Короткое название',
             'in_kurs' => 'In Kurs',
             'in_widget' => 'In Widget',
         ];

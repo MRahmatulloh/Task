@@ -10,15 +10,15 @@ use yii\grid\GridView;
 /* @var $searchModel app\models\search\MoneySearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = 'Moneys';
+$this->title = 'Валюты';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="money-index">
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <p>
-        <?= Html::a('Create Money', ['create'], ['class' => 'btn btn-success']) ?>
+    <p class="w-100 text-right">
+        <?= Html::a('Добавить валюту', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
 
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>

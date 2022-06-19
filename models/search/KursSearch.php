@@ -42,7 +42,7 @@ class KursSearch extends Kurs
     public function search($params)
     {
         $query = Kurs::find()
-            ->orderBy('date DESC')
+            ->orderBy('id DESC')
             ->joinWith('money');
 
         // add conditions that should always apply here

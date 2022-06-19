@@ -2,7 +2,6 @@
 
 namespace app\controllers;
 
-use app\models\search\KursSearch;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -62,16 +61,7 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-
-        $searchModel = new KursSearch();
-        $searchModel->date = date('Y-m-d');
-
-        $dataProvider = $searchModel->search($this->request->queryParams);
-
-        return $this->render('index',[
-            'dataProvider' => $dataProvider,
-            'searchModel' => $searchModel
-        ]);
+        return $this->render('index');
     }
 
     /**

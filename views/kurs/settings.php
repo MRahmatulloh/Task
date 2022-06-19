@@ -2,8 +2,6 @@
 
 use app\models\Money;
 use yii\helpers\Html;
-use yii\helpers\Url;
-use yii\grid\ActionColumn;
 use yii\grid\GridView;
 use app\assets\AppAsset;
 use yii\widgets\ActiveForm;
@@ -16,50 +14,50 @@ AppAsset::register($this);
 /* @var $dataProvider yii\data\ActiveDataProvider */
 /* @var $time ArrayObject */
 
-$this->title = 'Widget Settings';
+$this->title = 'Настройки виджета';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
     <div class="money-index">
-    <br>
-    <h3><?= Html::encode('New settings') ?></h3>
+        <br>
+        <h3><?= Html::encode('Новые настройки') ?></h3>
 
-    <div class="setting-form">
+        <div class="setting-form">
 
-        <?php $form = ActiveForm::begin(); ?>
+            <?php $form = ActiveForm::begin(); ?>
 
             <div class="row">
                 <div class="col-md-4">
                     <?= $form->field($model, 'in_kurs')->dropdownList(
-                            Money::selectList(),
-                            [
-                                'class' => 'select2 form-control in_kurs',
-                                'multiple' => true
-                            ])->label('Select currencies for giving') ?>
+                        Money::selectList(),
+                        [
+                            'class' => 'select2 form-control in_kurs',
+                            'multiple' => true
+                        ])->label('Выберите валюту для получения курса') ?>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <?= $form->field($model, 'in_widget')->dropdownList(
-                            [],
-                            [
-                                'class' => 'select2 form-control in_widget',
-                                'multiple' => true
-                            ])->label('Select currencies for Widget') ?>
+                        [],
+                        [
+                            'class' => 'select2 form-control in_widget',
+                            'multiple' => true
+                        ])->label('Выберите валюту для виджета') ?>
                 </div>
-                <div class="col-md-2">
-                    <?= $form->field($model, 'num_code')->textInput()->label('Widget update time(s)') ?>
+                <div class="col-md-3">
+                    <?= $form->field($model, 'num_code')->textInput()->label('Время обновления виджета (мин)') ?>
                 </div>
                 <div class="col-md-2 text-right">
                     <h5> </h5>
-                        <?= Html::submitButton('Apply Settings', ['class' => 'btn btn-success sendToKurs']) ?>
+                    <?= Html::submitButton('Cохранить', ['class' => 'btn btn-success']) ?>
                 </div>
 
             </div>
 
-        <?php ActiveForm::end(); ?>
+            <?php ActiveForm::end(); ?>
 
-    </div>
+        </div>
 
         <br>
-        <h3><?= Html::encode('Current settings') ?></h3>
+        <h3><?= Html::encode('Текущие настройки') ?></h3>
 
         <?= GridView::widget([
             'dataProvider' => $dataProvider,
@@ -69,18 +67,19 @@ $this->params['breadcrumbs'][] = $this->title;
 
                 [
                     'attribute' => 'num_code',
-                    'label' => 'Money',
+                    'label' => 'Bалюта',
                     'value' => 'name',
                     'filter' => Money::selectList(),
-                    'filterInputOptions' => ['class' => 'form-control select2', 'prompt' => 'All'],
-                    'contentOptions' => ['style' => 'width: 45%;'],
+                    'filterInputOptions' => ['class' => 'form-control select2', 'prompt' => 'Bce'],
+                    'contentOptions' => ['style' => 'width: 35%;'],
                 ],
 
                 [
                     'class' => 'yii\grid\CheckboxColumn',
                     'checkboxOptions' => function ($model, $key, $index, $column) {
                         return ['checked' => (bool)$model->in_kurs];
-                    }
+                    },
+                    'contentOptions' => ['class'=>'text-center'],
 
                 ],
 
@@ -89,15 +88,17 @@ $this->params['breadcrumbs'][] = $this->title;
                     'checkboxOptions' => function ($model, $key, $index, $column) {
                         $cond = (bool)$model->in_widget;
                         return ['checked' => $cond, 'disabled' => !$cond];
-                    }
+                    },
+                    'contentOptions' => ['class'=>'text-center'],
 
                 ],
 
                 [
-                    'label' => 'Refreshing time',
-                    'value' => function() use ($time){
+                    'label' => 'Время обновления (мин)',
+                    'value' => function () use ($time) {
                         return $time['time'];
-                    }
+                    },
+                    'contentOptions' => ['class'=>'text-center'],
                 ]
             ],
         ]); ?>
@@ -113,22 +114,19 @@ $script = <<< JS
         
         $('.select2').select2();
 
-        $('.table thead th:nth-child(3)').text('Selected for giving a kurs').addClass('text-primary')
-        $('.table thead th:nth-child(4)').text('Selected for widget').addClass('text-primary')
+        $('.table thead th:nth-child(3)').text('Выбрано для получения курса').addClass('text-primary')
+        $('.table thead th:nth-child(4)').text('Выбрано для виджета').addClass('text-primary')
         $('.table thead th:nth-child(5)').addClass('text-primary')
                 
         $('.in_kurs').select2().on('change', function() {
-            // $('.in_widget').select2({data:data[$(this).val()]});
+            
             let data = $('.in_kurs').select2('data');
             
             $.each(data, function(idx, val) {
                 data[idx].selected = val.selected = false;
             });
-            
-            // console.log(data)
                         
             $('.in_widget').empty().select2({
-                // placeholder: "Select currencies",
                 data: data
             });
             
